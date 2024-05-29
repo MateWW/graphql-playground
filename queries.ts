@@ -1,7 +1,7 @@
 import { gql } from "@apollo/client"
 
 export const Country = gql`
-query GetCountry($country: String!) {
+query GetCountry($country: ID!) {
     country(code: $country) {
       name
       native

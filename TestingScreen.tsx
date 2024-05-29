@@ -5,20 +5,6 @@ import { useQuery } from '@apollo/client';
 
 import { Country, ListCountries } from './queries';
 
-export type SpotlightScreenProps = NativeStackScreenProps<
-  InsightsScreenParamsList,
-  typeof ROUTE
->;
-export type SpotlightScreenRoute = RouteProp<
-  InsightsScreenParamsList,
-  typeof ROUTE
->;
-export type SpotlightScreenNavigation = NativeStackNavigationProp<
-  InsightsScreenParamsList,
-  typeof ROUTE
->;
-
-
 
 const queries = [
   {
@@ -30,7 +16,7 @@ const queries = [
   {
     query: Country,
     variables: {
-      country: 'UK'
+      country: 'DE'
     }
   },
   {
@@ -48,19 +34,27 @@ const queries = [
   {
     query: ListCountries,
     variables: {
-      currency: 'USD'
+      currency: 'PLN'
     }
   },
   {
     query: ListCountries,
     variables: {
-      currency: 'GBP'
+      currency: 'TRY'
     }
   }
 ];
 
 function getQueryStatus(data) {
-  return '123'
+  if(data?.country?.emoji) {
+    return data.country.emoji
+  }
+
+  if(data?.countries) {
+    return data.countries.map(country => country.name).join(', ')
+  }
+
+  return JSON.stringify(data ?? 'null');
 }
 
 function isEqual(a, b) {
@@ -74,6 +68,11 @@ function isEqual(a, b) {
 
 // Insights/SpendingGroups
 export const TestingScreen = () => {
+  const previous = useRef({
+    a: null,
+    b: null,
+    c: null
+  });
   const [skip, setSkip] = useState(false);
   const [querySettings, setQuerySettings] = useState({
     a: queries[0],
@@ -83,21 +82,18 @@ export const TestingScreen = () => {
 
   const resultB = useQuery(querySettings?.b.query, {
     skip,
-    client: getCoreGraphQLClient(),
     fetchPolicy: 'cache-and-network',
     errorPolicy: 'all',
     variables: querySettings?.b.variables
   });
   const resultA = useQuery(querySettings?.a.query, {
     skip,
-    client: getCoreGraphQLClient(),
     fetchPolicy: 'cache-first',
     errorPolicy: 'all',
     variables: querySettings?.a.variables
   });
   const resultC = useQuery(querySettings?.c.query, {
     skip,
-    client: getCoreGraphQLClient(),
     fetchPolicy: 'cache-and-network',
     nextFetchPolicy: 'cache-first',
     errorPolicy: 'all',
@@ -123,10 +119,13 @@ export const TestingScreen = () => {
   };
 
   console.log({
+    resultAError: resultA.error,
     resultA: resultA.data,
     previousResultA: resultA.previousData,
+    resultBError: resultB.error,
     resultB: resultB.data,
     previousResultB: resultB.previousData,
+    resultCError: resultC.error,
     resultC: resultC.data,
     previousResultC: resultC.previousData
   });
@@ -208,29 +207,29 @@ export const TestingScreen = () => {
       </View>
       <Text>Result 1:</Text>
       <Text>Loading: {JSON.stringify(resultA.loading)}</Text>
-      <Text>PreviousData: {getQueryStatus(resultA.previousData)}</Text>
       <Text>
         Expected PreviousData: {getQueryStatus(previous.current.a)}{' '}
         {isEqual(resultA.previousData, previous.current.a)}
       </Text>
+      <Text>PreviousData: {getQueryStatus(resultA.previousData)}</Text>
       <Text>Data: {getQueryStatus(resultA.data)}</Text>
 
       <Text>Result 2: </Text>
       <Text>Loading: {JSON.stringify(resultB.loading)}</Text>
-      <Text>PreviousData: {getQueryStatus(resultB.previousData)}</Text>
       <Text>
         Expected PreviousData: {getQueryStatus(previous.current.b)}{' '}
         {isEqual(resultB.previousData, previous.current.b)}
       </Text>
+      <Text>PreviousData: {getQueryStatus(resultB.previousData)}</Text>
       <Text>Data: {getQueryStatus(resultB.data)}</Text>
 
       <Text>Result 3: </Text>
       <Text>Loading: {JSON.stringify(resultC.loading)}</Text>
-      <Text>PreviousData: {getQueryStatus(resultC.previousData)}</Text>
       <Text>
         Expected PreviousData: {getQueryStatus(previous.current.c)}{' '}
         {isEqual(resultC.previousData, previous.current.c)}
       </Text>
+      <Text>PreviousData: {getQueryStatus(resultC.previousData)}</Text>
       <Text>Data: {getQueryStatus(resultC.data)}</Text>
     </>
   );
